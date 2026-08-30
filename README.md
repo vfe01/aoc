@@ -1,0 +1,2 @@
+## Site automation
+To automatically fetch problems, instructions, and submit anwers, cookies need to be provided. Go to the site, log in, and download cookies. Store the cookies in a file called "cookies.txt" placed in the root directory of the project.
