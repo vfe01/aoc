@@ -26,8 +26,10 @@ class Safe():
     def __init__(self, starting_position:int=50, max_position:int=99):
         self.current_position = starting_position
         self.max_position = max_position
+        
     def open(self, instructions:list[SafeKnobInstruction]) -> int:
         all_positions = []
+        self.times_pointed_at_0 = 0
         for instruction in instructions:
             self._perform_instruction(instruction)
             all_positions.append(self.current_position)
@@ -41,6 +43,9 @@ class Safe():
         turn_method = self._turn_knob_left if direction == "L" else self._turn_knob_right
         for _ in range(instruction.amount):
             turn_method()
+            if self.current_position == 0:
+                self.times_pointed_at_0 += 1
+
     def _turn_knob_left(self):
         is_at_minimum = self.current_position == 0
         new_position = self.current_position -1 if not is_at_minimum else self.max_position
@@ -56,3 +61,4 @@ if __name__ == "__main__":
         instructions = input_parser(input_file.read())
 
     print(safe.open(instructions))
+    print(safe.times_pointed_at_0)
