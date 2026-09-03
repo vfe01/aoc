@@ -9,27 +9,28 @@ class BatteryBank():
     def __init__(self, batteries:list[Battery]):
         self.batteries = batteries
 
-    def determine_largest_joltage(self) -> int:
-        first_digit, first_digit_index = self._largest_leftmost_number()
+    def determine_largest_joltage(self, joltage_n_digits:int) -> int:
+        print(self)
         n_digits = len(str(self))
-        if first_digit_index != n_digits-1:
-            second_digit, _ = BatteryBank(self.batteries[first_digit_index+1:])._largest_leftmost_number()
-        else:
-            second_digit = first_digit
-            first_digit, _ = BatteryBank(self.batteries[0:-1])._largest_leftmost_number()
+        all_digits = []
 
-        return int(f"{first_digit}{second_digit}")
+        leftmost_remaining_digit_index = 0
+        for nth_digit in range(joltage_n_digits):
+            print(leftmost_remaining_digit_index, " ", n_digits-joltage_n_digits+nth_digit+1)
+            digit, digit_index = BatteryBank(self.batteries[leftmost_remaining_digit_index:n_digits-joltage_n_digits+nth_digit+1])._largest_leftmost_digit()
+            leftmost_remaining_digit_index = leftmost_remaining_digit_index  + digit_index + 1
+            all_digits.append(digit)
+            print(all_digits)
         
-    
-    def _largest_leftmost_number(self) -> tuple[int, int]:
+        return int("".join(map(str, all_digits)))
+
+    def _largest_leftmost_digit(self) -> tuple[int, int]:
         counter = Counter(str(self))
         number_counts = counter.most_common()
-        number_counts.sort(key=lambda tup: int(tup[0]), reverse=True)  # sorts in place
+        number_counts.sort(key=lambda tup: int(tup[0]), reverse=True)
         largest_number, _ = number_counts[0]
         return int(largest_number), str(self).index(largest_number)
-
-    def _batteries_between_indices(self, start:int, stop:int):
-        return self.batteries[start:stop]
+    
     def __str__(self):
         return "".join([str(battery.joltage) for battery in self.batteries])
 
@@ -43,6 +44,13 @@ if __name__ == '__main__':
         file_content = file.read()
 
     battery_banks = parse_input(file_content)
-    highest_joltages = [battery_bank.determine_largest_joltage() for battery_bank in battery_banks]
-    answer = sum(highest_joltages)
-    print("Part 1: ", answer)
+    highest_joltages_pt1 = [battery_bank.determine_largest_joltage(joltage_n_digits=2) for battery_bank in battery_banks]
+    answer_pt1 = sum(highest_joltages_pt1)
+    print(highest_joltages_pt1)
+    print("Part 1: ", answer_pt1)
+    
+    highest_joltages_pt2 = [battery_bank.determine_largest_joltage(joltage_n_digits=12) for battery_bank in battery_banks]
+    answer_pt2 = sum(highest_joltages_pt2)
+    print(highest_joltages_pt2)
+    print("Part 2: ", answer_pt2)
+    
