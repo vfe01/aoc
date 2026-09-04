@@ -83,14 +83,31 @@ class SquareGrid():
                 rolls.append(current_square)
         return rolls
 
+    def _remove_accessible_rolls(self):
+        for x, y in self._all_coordinates:
+            current_square = self._get_square(x, y)
+            if isinstance(current_square, PaperRollSquare) and current_square.is_accessible():
+                self.rows[y][x] = EmptySquare()
+
+    def removeable_rolls(self):
+        rolls = []
+        while True:
+            new_rolls = self.accessible_rolls()
+            rolls += new_rolls
+            if len(new_rolls) == 0:
+                break
+            self._remove_accessible_rolls()
+            self._determine_accessible_rolls()
+        
+        return rolls
+
     def _get_square(self, x:int, y:int) -> Square:
         return self.rows[y][x]
 
 
-
 if __name__ == '__main__':
-    with open('test_input', 'r') as file:
+    with open('input', 'r') as file:
         file_content = file.read()
     square_grid = SquareGrid(file_content)
     print("Part 1: ", len(square_grid.accessible_rolls()))
-    
+    print("Part 2: ", len(square_grid.removeable_rolls()))
