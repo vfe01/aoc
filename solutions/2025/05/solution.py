@@ -8,9 +8,9 @@ class IntRange():
     def __init__(self, start:int, inclusive_stop:int):
         self.start = start
         self.stop = inclusive_stop
+        assert(self.stop >= self.start)
 
     def contains(self, other_range:IntRange):
-        logger.debug(f"")
         return self.start > other_range.start and self.stop < other_range.stop
 
     def overlaps(self, other_range:IntRange):
@@ -19,17 +19,24 @@ class IntRange():
         or \
         other_range.start <= self.start and self.start <= other_range.stop
 
-    def combine_overlapping(self, other_overlapping_range:IntRange) -> IntRange:
+    def combine_overlapping(self, other_overlapping_range:IntRange):
         assert(self.overlaps(other_overlapping_range))
         lower_bound = min(self.start, other_overlapping_range.start)        
         upper_bound = max(self.stop, other_overlapping_range.stop)
-        return IntRange(lower_bound, upper_bound)
+        logger.debug(f"Combined range {self} and {other_overlapping_range} into {IntRange(lower_bound, upper_bound)}")
+        self.start = lower_bound
+        self.stop = upper_bound
+        
+
+    def span_length(self):
+        return self.stop - self.start + 1 
     
     def __str__(self) -> str:
-        return f"Start: {self.start}, Stop: {self.stop}"
+        return f"{self.start}-{self.stop}"
 
     def __eq__(self, other_range: IntRange) -> bool:
         return self.start == other_range.start and self.stop == other_range.stop
+    
 class Ingredient():
     def __init__(self, id:int):
         self.id = id
@@ -43,48 +50,42 @@ def parse_input(input:str) -> tuple[list[IntRange], list[Ingredient]]:
     available_ingredients = [Ingredient(int(id)) for id in available_ingredients_str.split("\n")]
     return id_ranges, available_ingredients
 
+def merge_range_into_others(range_for_merging:IntRange, other_ranges:list[IntRange]) -> bool:
+    for other_range in other_ranges:
+        if other_range.overlaps(range_for_merging):
+            other_range.combine_overlapping(range_for_merging)
+            return True
+    return False
+    
+
 if __name__ == '__main__':
     with open('test_input', 'r') as file:
         file_content = file.read()[0:-1]
-    
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s %(message)s'
+    )
         
     id_ranges, ingredients = parse_input(file_content)
     n_fresh_ingredients = sum([ingredient.is_fresh(id_ranges) for ingredient in ingredients])
-    print("Part 1: ", n_fresh_ingredients)
+    logger.info(f"Part 1: {n_fresh_ingredients}")
 
-    range_combined_this_iteration = True
-    while range_combined_this_iteration:
-        new_id_ranges = []
-        range_combined_this_iteration = False
-        for current_range in id_ranges:
-            for other_range in id_ranges:
-                if current_range == other_range:
-                    print(current_range, other_range, " is the same")
-                    continue
-                #check if current range is contained within the other
-                if current_range.overlaps(other_range):
-                    combined_range = current_range.combine_overlapping(other_range)
-                    if combined_range not in id_ranges:
-                        new_id_ranges.append(combined_range)
-                        range_combined_this_iteration = True
-                        print(current_range, " overlaps with ", other_range, ". New range: ", new_id_ranges[-1])
-                        break
-        id_ranges += new_id_ranges
-
-
-        ranges_to_remove = []
-        for range in id_ranges:
-            for other_range in id_ranges:
-                if range.contains(other_range):
-                    ranges_to_remove.append(other_range)
-
-        for range in ranges_to_remove:
-            print("Range to remove: ", range)
-            print("Ranges: ")
-            for range in id_ranges:
-                print(range)
-            id_ranges.remove(range)
+    #Part 2
+    logger.debug(f"Part 2 start")
+    unmerged_ranges:list[IntRange]= []
+    while len(id_ranges) > 0:
+        current_range = id_ranges.pop()
+        logger.debug(f"Current range: {current_range}")
+        logger.debug(f"Current ranges: {list(map(str, id_ranges))}")
+        logger.debug(f"Unmerged ranges: {list(map(str, unmerged_ranges))}")
         
-    print(len(id_ranges))
-                
+        range_was_merged = merge_range_into_others(current_range, id_ranges)
+        if not range_was_merged:
+            logger.debug(f"Unable to merge!")
+            unmerged_ranges.append(current_range)
+
+        logger.debug("==================")
+    n_fresh_ingredient_ids = sum([range.span_length() for range in unmerged_ranges])
+    logger.info(f"Part 2: {n_fresh_ingredient_ids}")
+    #356357092465543 incorrect
     
