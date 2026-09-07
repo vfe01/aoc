@@ -13,11 +13,11 @@ class IntRange():
     def contains(self, other_range:IntRange):
         return self.start > other_range.start and self.stop < other_range.stop
 
-    def overlaps(self, other_range:IntRange):
-        return \
-        other_range.start <= self.stop and self.stop <= other_range.stop \
-        or \
-        other_range.start <= self.start and self.start <= other_range.stop
+    def overlaps(self, other_range: IntRange):
+        return (
+            self.start <= other_range.stop
+            and other_range.start <= self.stop
+        )
 
     def combine_overlapping(self, other_overlapping_range:IntRange):
         assert(self.overlaps(other_overlapping_range))
@@ -59,7 +59,7 @@ def merge_range_into_others(range_for_merging:IntRange, other_ranges:list[IntRan
     
 
 if __name__ == '__main__':
-    with open('test_input', 'r') as file:
+    with open('input', 'r') as file:
         file_content = file.read()[0:-1]
     logging.basicConfig(
         level=logging.DEBUG,
@@ -70,22 +70,21 @@ if __name__ == '__main__':
     n_fresh_ingredients = sum([ingredient.is_fresh(id_ranges) for ingredient in ingredients])
     logger.info(f"Part 1: {n_fresh_ingredients}")
 
-    #Part 2
-    logger.debug(f"Part 2 start")
-    unmerged_ranges:list[IntRange]= []
-    while len(id_ranges) > 0:
-        current_range = id_ranges.pop()
-        logger.debug(f"Current range: {current_range}")
-        logger.debug(f"Current ranges: {list(map(str, id_ranges))}")
-        logger.debug(f"Unmerged ranges: {list(map(str, unmerged_ranges))}")
-        
-        range_was_merged = merge_range_into_others(current_range, id_ranges)
-        if not range_was_merged:
-            logger.debug(f"Unable to merge!")
-            unmerged_ranges.append(current_range)
+    # Part 2
+    merged_ranges: list[IntRange] = []
 
-        logger.debug("==================")
-    n_fresh_ingredient_ids = sum([range.span_length() for range in unmerged_ranges])
+    for current_range in sorted(id_ranges, key=lambda r: r.start):
+        if not merged_ranges or current_range.start > merged_ranges[-1].stop + 1:
+            merged_ranges.append(
+                IntRange(current_range.start, current_range.stop)
+            )
+        else:
+            merged_ranges[-1].stop = max(
+                merged_ranges[-1].stop,
+                current_range.stop,
+            )
+
+    n_fresh_ingredient_ids = sum(
+        range.span_length() for range in merged_ranges
+    )
     logger.info(f"Part 2: {n_fresh_ingredient_ids}")
-    #356357092465543 incorrect
-    
