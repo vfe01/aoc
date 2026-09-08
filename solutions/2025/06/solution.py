@@ -1,6 +1,7 @@
 from abc import ABC
 from collections.abc import Callable
 import logging
+import numpy as np
 logger = logging.getLogger(__name__)
 
 class MathOperation(ABC):
@@ -38,7 +39,7 @@ class Multiplication(MathOperation):
         multiplication_operation = lambda x, y: x * y
         super().__init__(numbers, multiplication_operation, "*")
         
-def parse_input(input_string:str) -> list[MathOperation]:
+def parse_input_pt1(input_string:str) -> list[MathOperation]:
     rows = input_string.split("\n")[:-1]
     number_rows = [row.split() for row in rows[:-1]]
     operation_row = rows[-1].split()
@@ -54,16 +55,45 @@ def parse_input(input_string:str) -> list[MathOperation]:
         }
         operations.append(STRING_OPERATION_MAPPINGS[operation](numbers))
     return operations
+
+def parse_input_pt2(input_str:str) -> list[MathOperation]:
+    string_matrix = np.array(list(map(list, input_str.split("\n")[:-1])))
+    transposed_string_matrix = np.array(list(reversed(string_matrix.transpose())))
+
+    operations = []
+    current_numbers = []
+    for row in transposed_string_matrix:
+        if not "".join(row).strip():
+            continue
+
+        
+        number = int("".join((row[:-1])))
+        current_numbers.append(number)
+        operation_character = row[-1]
+        if operation_character != " ":
+            STRING_OPERATION_MAPPINGS = {
+                "+": Addition,
+                "*": Multiplication   
+            }
+            operations.append(STRING_OPERATION_MAPPINGS[operation_character](current_numbers.copy()))
+            current_numbers = []
+    return operations
+    
+
+
 if __name__ == '__main__':
     with open('input', 'r') as file:
         file_content = file.read()
     
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format='%(asctime)s %(message)s'
     )
 
-    operations = parse_input(file_content)
+    operations = parse_input_pt1(file_content)
     sum_of_operations = sum([operation.eval() for operation in operations])
     logger.info(f"Part 1: {sum_of_operations}")
-    
+
+    operations_pt2 = parse_input_pt2(file_content)
+    sum_of_operations_pt2 = sum([operation.eval() for operation in operations_pt2])
+    logger.info(f"Part 2: {sum_of_operations_pt2}")
