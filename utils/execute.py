@@ -1,4 +1,3 @@
-import argparse
 import builtins
 import os
 import logging
@@ -43,14 +42,3 @@ def execute_solution(year: int, day: int, test: bool, solutions_dir: Path) -> No
             runpy.run_path(str(solution_path), run_name="__main__")
     finally:
         os.chdir(previous_directory)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-y", "--year", type=int, required=True)
-    parser.add_argument("-d", "--day", type=int, required=True)
-    parser.add_argument("-t", "--test", action="store_true")
-    parser.add_argument("-s", "--solutions-dir", type=Path, default=Path("solutions"))
-
-    args = parser.parse_args()
-    execute_solution(args.year, args.day, args.test, args.solutions_dir.resolve())

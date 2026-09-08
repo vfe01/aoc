@@ -1,6 +1,4 @@
-import os
 from pathlib import Path
-import argparse
 
 from .aoc_api import AocAPI
 def _create_directory(directory_path:Path, create_keep_file=False, exist_ok=False):
@@ -31,14 +29,3 @@ def create_problem_directory(year:int, day:int, root_path:str, download_input:bo
         _create_directory(description_directory_path)
         task_description = aoc_api.get_puzzle_instructions(day, year)
         _string_to_file(task_description, Path(description_directory_path, "part_1.md"))
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-y", "--year")
-    parser.add_argument("-d", "--day")
-    parser.add_argument("-i", "--download-inputs", default=True)
-    parser.add_argument("-t", "--download-tasks", default=True)
-    parser.add_argument("-s", "--solutions-dir", default="./solutions")
-    
-    args = parser.parse_args()
-    create_problem_directory(int(args.year), int(args.day), args.solutions_dir, args.download_inputs, args.download_tasks)
